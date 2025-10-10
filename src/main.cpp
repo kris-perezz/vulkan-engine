@@ -1,8 +1,8 @@
-
 #include "Application.h"
 #include "Log.h"
 #include <exception>
 int main() {
+  PEREZLOG::Log::init();
   kopi::Application app;
   
   try {

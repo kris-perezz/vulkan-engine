@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Pipeline.h"
 #include "Window.h"
 #include <string>
 #define GLFW_INCLUDE_VULKAN
@@ -19,5 +20,6 @@ namespace kopi {
     private:
 
     Window m_window{"kopi engine", WIDTH, HEIGHT};
+    Pipeline m_pipeline{"src/shaders/simple.vert.spv", "src/shaders/simple.frag.spv"};
   };
 } // namespace kopi

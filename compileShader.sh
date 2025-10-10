@@ -1,0 +1,2 @@
+/usr/bin/glslc /home/krizpe/Documents/vulkan-engine/src/shaders/simple.frag -o /home/krizpe/Documents/vulkan-engine/src/shaders/simple.frag.spv
+/usr/bin/glslc /home/krizpe/Documents/vulkan-engine/src/shaders/simple.vert -o /home/krizpe/Documents/vulkan-engine/src/shaders/simple.vert.spv
