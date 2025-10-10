@@ -7,15 +7,16 @@
 #include <cstdint>
 #include <memory>
 #include <stdexcept>
+#include <vector>
 #include <vulkan/vulkan_core.h>
 
 namespace kopi {
   Application::Application() {
+    loadModels();
     createPipelineLayout();
     createPipeline();
     createCommandBuffers();
   }
-  
 
   Application::~Application() {
     vkDestroyPipelineLayout(m_device.device(), m_pipelineLayout, nullptr);
@@ -26,6 +27,13 @@ namespace kopi {
       glfwPollEvents();
       drawFrame();
     }
+    vkDeviceWaitIdle(m_device.device());
+  }
+
+  void Application::loadModels() {
+    std::vector<Model::Vertex> vertices{{{0.0, -0.5}}, {{0.5, 0.5}}, {{-0.5, 0.5}}};
+
+    m_model = std::make_unique<Model>(m_device, vertices);
   }
 
   void Application::createPipelineLayout() {
@@ -46,8 +54,9 @@ namespace kopi {
   }
 
   void Application::createPipeline() {
-    auto pipelineConfig =
-        Pipeline::defaultPipelineConfigInfo(m_swapChain.width(), m_swapChain.height());
+    PipelineConfigInfo pipelineConfig{};
+    Pipeline::defaultPipelineConfigInfo(pipelineConfig, m_swapChain.width(), m_swapChain.height());
+
     pipelineConfig.renderPass     = m_swapChain.getRenderPass();
     pipelineConfig.pipelineLayout = m_pipelineLayout;
     m_pipeline                    = std::make_unique<Pipeline>(m_device,
@@ -88,7 +97,7 @@ namespace kopi {
       renderPassInfo.renderArea.extent = m_swapChain.getSwapChainExtent();
 
       std::array<VkClearValue, 2> clearValues{};
-      clearValues[0].color           = {0.1f, 0.1f, 0.1f, 0.1f};
+      clearValues[0].color           = {0.1f, 0.1f, 0.1f, 1.0f};
       clearValues[1].depthStencil    = {1.0f, 0};
       renderPassInfo.clearValueCount = static_cast<uint32_t>(clearValues.size());
       renderPassInfo.pClearValues    = clearValues.data();
@@ -96,13 +105,14 @@ namespace kopi {
       vkCmdBeginRenderPass(m_commandBuffers[i], &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
 
       m_pipeline->bind(m_commandBuffers[i]);
-      vkCmdDraw(m_commandBuffers[i], 3, 1, 0, 0);
+      m_model->bind(m_commandBuffers[i]);
+      m_model->draw(m_commandBuffers[i]);
 
       vkCmdEndRenderPass(m_commandBuffers[i]);
 
       if (vkEndCommandBuffer(m_commandBuffers[i]) != VK_SUCCESS) {
-        LOG_ERROR("Failed to record comman buffer!");
-        throw std::runtime_error("Failed to record comman buffer!");
+        LOG_ERROR("Failed to record command buffer!");
+        throw std::runtime_error("Failed to record command buffer!");
       }
     }
   }
@@ -116,5 +126,9 @@ namespace kopi {
       throw std::runtime_error("Failed to acquire swap chain image!");
     }
     result = m_swapChain.submitCommandBuffers(&m_commandBuffers[imageIndex], &imageIndex);
+    if (result != VK_SUCCESS) {
+      LOG_ERROR("Failed to present swap chain image!");
+      throw std::runtime_error("Failed to present swap chain image!");
+    }
   }
 } // namespace kopi

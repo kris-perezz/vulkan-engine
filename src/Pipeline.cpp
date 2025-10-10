@@ -1,8 +1,10 @@
 #include "Pipeline.h"
 #include "EngineDevice.h"
 #include "Log.h"
+#include "Model.h"
 
 #include <cstddef>
+#include <cstdint>
 #include <fstream>
 #include <ios>
 #include <stdexcept>
@@ -65,19 +67,17 @@ namespace kopi {
 
     shaderStages[1].pSpecializationInfo = nullptr;
 
+    auto bindingDescriptions   = Model::Vertex::getBindingDescriptions();
+    auto attributeDescriptions = Model::Vertex::getAttributeDescriptions();
+
     VkPipelineVertexInputStateCreateInfo vertexInputInfo{};
     vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
-    vertexInputInfo.vertexAttributeDescriptionCount = 0;
-    vertexInputInfo.vertexBindingDescriptionCount   = 0;
-    vertexInputInfo.pVertexAttributeDescriptions    = nullptr;
-    vertexInputInfo.pVertexBindingDescriptions      = nullptr;
-
-    VkPipelineViewportStateCreateInfo viewportInfo{};
-    viewportInfo.sType         = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
-    viewportInfo.viewportCount = 1;
-    viewportInfo.pViewports    = &configInfo.viewport;
-    viewportInfo.scissorCount  = 1;
-    viewportInfo.pScissors     = &configInfo.scissor;
+    vertexInputInfo.vertexAttributeDescriptionCount =
+        static_cast<uint32_t>(attributeDescriptions.size());
+    vertexInputInfo.vertexBindingDescriptionCount =
+        static_cast<uint32_t>(bindingDescriptions.size());
+    vertexInputInfo.pVertexAttributeDescriptions = attributeDescriptions.data();
+    vertexInputInfo.pVertexBindingDescriptions   = bindingDescriptions.data();
 
     VkGraphicsPipelineCreateInfo pipeLineInfo{};
     pipeLineInfo.sType               = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
@@ -85,7 +85,7 @@ namespace kopi {
     pipeLineInfo.pStages             = shaderStages;
     pipeLineInfo.pVertexInputState   = &vertexInputInfo;
     pipeLineInfo.pInputAssemblyState = &configInfo.inputAssemblyInfo;
-    pipeLineInfo.pViewportState      = &viewportInfo;
+    pipeLineInfo.pViewportState      = &configInfo.viewportInfo;
     pipeLineInfo.pRasterizationState = &configInfo.rasterizationInfo;
     pipeLineInfo.pMultisampleState   = &configInfo.multisampleInfo;
     pipeLineInfo.pColorBlendState    = &configInfo.colorBlendInfo;
@@ -145,8 +145,9 @@ namespace kopi {
     return buffer;
   }
 
-  PipelineConfigInfo Pipeline::defaultPipelineConfigInfo(uint32_t width, uint32_t height) {
-    PipelineConfigInfo configInfo{};
+  void Pipeline::defaultPipelineConfigInfo(PipelineConfigInfo &configInfo,
+                                           uint32_t width,
+                                           uint32_t height) {
     // ---Input Assembly Info---
     configInfo.inputAssemblyInfo.sType =
         VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
@@ -164,6 +165,13 @@ namespace kopi {
     // ---Scissor Info---
     configInfo.scissor.offset = {0, 0};
     configInfo.scissor.extent = {width, height};
+
+    // ---Viewport Info---
+    configInfo.viewportInfo.sType         = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
+    configInfo.viewportInfo.viewportCount = 1;
+    configInfo.viewportInfo.pViewports    = &configInfo.viewport;
+    configInfo.viewportInfo.scissorCount  = 1;
+    configInfo.viewportInfo.pScissors     = &configInfo.scissor;
 
     // ---Rasterization Info---
     configInfo.rasterizationInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
@@ -221,8 +229,6 @@ namespace kopi {
     configInfo.depthStencilInfo.stencilTestEnable     = VK_FALSE;
     configInfo.depthStencilInfo.front                 = {};   // Optional
     configInfo.depthStencilInfo.back                  = {};   // Optional
-
-    return configInfo;
   }
 
 } // namespace kopi

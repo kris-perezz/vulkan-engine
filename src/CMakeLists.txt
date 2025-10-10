@@ -5,7 +5,8 @@ set(ENGINE_HEADER
   Window.h
   Pipeline.h
   EngineDevice.h
-  SwapChain.h)
+  SwapChain.h
+  Model.h)
 
 set(ENGINE_SOURCE
   Log.cpp
@@ -13,7 +14,8 @@ set(ENGINE_SOURCE
   Application.cpp
   Pipeline.cpp
   EngineDevice.cpp
-  SwapChain.cpp)
+  SwapChain.cpp
+  Model.cpp)
 
 
 add_library(Vulkan_Engine ${ENGINE_HEADER} ${ENGINE_SOURCE})

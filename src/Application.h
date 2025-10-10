@@ -1,6 +1,7 @@
 #pragma once
 
 #include "EngineDevice.h"
+#include "Model.h"
 #include "Pipeline.h"
 #include "SwapChain.h"
 #include "Window.h"
@@ -26,6 +27,7 @@ namespace kopi {
     void run();
 
   private:
+    void loadModels();
     void createPipelineLayout();
     void createPipeline();
     void createCommandBuffers();
@@ -38,5 +40,6 @@ namespace kopi {
 
     VkPipelineLayout m_pipelineLayout;
     std::vector<VkCommandBuffer> m_commandBuffers;
+    std::unique_ptr<Model> m_model;
   };
 } // namespace kopi
