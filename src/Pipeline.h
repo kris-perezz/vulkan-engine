@@ -1,17 +1,37 @@
 #pragma once
 
+#include "EngineDevice.h"
 #include <string>
 #include <vector>
+#include <vulkan/vulkan_core.h>
 
 namespace kopi {
+  struct PipelineConfigInfo {};
   class Pipeline {
-    public:
-    Pipeline(const std::string &vertFilePath, const std::string &fragFilePath);
-    //~Pipeline();
-    
-    private:
-    void createGraphicsPipeline(const std::string &vertFilePath, const std::string &fragFilePath);
-    
+  public:
+    Pipeline(EngineDevice &device,
+             const std::string &vertFilePath,
+             const std::string &fragFilePath,
+             const PipelineConfigInfo &configInfo);
+    ~Pipeline() {}
+
+    Pipeline(const Pipeline &)       = delete;
+    void operator=(const Pipeline &) = delete;
+
+    static PipelineConfigInfo defaultPipelineConfigInfo(uint32_t width, uint32_t height);
+
+  private:
     static std::vector<char> readFile(const std::string &filePath);
+
+    void createGraphicsPipeline(const std::string &vertFilePath,
+                                const std::string &fragFilePath,
+                                const PipelineConfigInfo &configInfo);
+
+    void createShaderModule(const std::vector<char> &code, VkShaderModule *shaderModule);
+
+    EngineDevice &m_device;
+    VkPipeline m_graphicsPipeline;
+    VkShaderModule m_vertShaderModule;
+    VkShaderModule m_fragShaderModule;
   };
 } // namespace kopi
