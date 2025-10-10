@@ -1,15 +1,16 @@
 #include "Window.h"
+#include "Log.h"
 #include <GLFW/glfw3.h>
+#include <stdexcept>
+#include <vulkan/vulkan_core.h>
 
-namespace kopi
-{
-  Window::Window(std::string name, int width, int height) : m_windowName(name), m_width(width), m_height(height)
-  {
+namespace kopi {
+  Window::Window(std::string name, int width, int height)
+      : m_windowName(name), m_width(width), m_height(height) {
     initWindow();
   }
-  
-  Window::~Window()
-  {
+
+  Window::~Window() {
     glfwDestroyWindow(m_window);
     glfwTerminate();
   }
@@ -21,9 +22,13 @@ namespace kopi
 
     m_window = glfwCreateWindow(m_width, m_height, m_windowName.c_str(), nullptr, nullptr);
   }
-  
-  bool Window::shouldClose()
-  {
-    return glfwWindowShouldClose(m_window);
+
+  bool Window::shouldClose() { return glfwWindowShouldClose(m_window); }
+
+  void Window::createWindowSurface(VkInstance instance, VkSurfaceKHR *surface) {
+    if (glfwCreateWindowSurface(instance, m_window, nullptr, surface) != VK_SUCCESS) {
+      LOG_ERROR("failed to create window surface");
+      throw std::runtime_error("failed to create window surface");
+    }
   }
-}
+} // namespace kopi

@@ -3,13 +3,15 @@ set(ENGINE_HEADER
   Log.h
   Application.h
   Window.h
-  Pipeline.h)
+  Pipeline.h
+  EngineDevice.h)
 
 set(ENGINE_SOURCE
   Log.cpp
   Window.cpp
   Application.cpp
-  Pipeline.cpp)
+  Pipeline.cpp
+  EngineDevice.cpp)
 
 
 add_library(Vulkan_Engine ${ENGINE_HEADER} ${ENGINE_SOURCE})
