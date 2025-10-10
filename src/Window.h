@@ -7,18 +7,20 @@
 #include <GLFW/glfw3.h>
 namespace kopi {
   class Window {
-    public:
+  public:
     Window(std::string name, int width, int height);
     ~Window();
 
-    Window(const Window &) = delete;
-    Window &operator = (const Window &) = delete;
+    Window(const Window &)            = delete;
+    Window &operator=(const Window &) = delete;
 
-
-    bool shouldClose();
     void createWindowSurface(VkInstance instance, VkSurfaceKHR *surface);
 
-    private:  
+    bool shouldClose();
+
+    VkExtent2D getExtent();
+
+  private:
     void initWindow();
     GLFWwindow *m_window;
 

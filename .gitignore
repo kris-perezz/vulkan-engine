@@ -24,3 +24,4 @@ CMakeUserPresets.json
 .clangd
 /build
 /.cache
+/.vscode

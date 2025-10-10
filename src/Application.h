@@ -2,8 +2,12 @@
 
 #include "EngineDevice.h"
 #include "Pipeline.h"
+#include "SwapChain.h"
 #include "Window.h"
+#include <memory>
 #include <string>
+#include <vector>
+#include <vulkan/vulkan_core.h>
 #define GLFW_INCLUDE_VULKAN
 
 #include <GLFW/glfw3.h>
@@ -16,14 +20,23 @@ namespace kopi {
     Application();
     ~Application();
 
+    Application(const Application &)            = delete;
+    Application &operator=(const Application &) = delete;
+
     void run();
 
   private:
+    void createPipelineLayout();
+    void createPipeline();
+    void createCommandBuffers();
+    void drawFrame();
+
     Window m_window{"kopi engine", WIDTH, HEIGHT};
     EngineDevice m_device{m_window};
-    Pipeline m_pipeline{m_device,
-                        "src/shaders/simple.vert.spv",
-                        "src/shaders/simple.frag.spv",
-                        Pipeline::defaultPipelineConfigInfo(WIDTH, HEIGHT)};
+    SwapChain m_swapChain{m_device, m_window.getExtent()};
+    std::unique_ptr<Pipeline> m_pipeline;
+
+    VkPipelineLayout m_pipelineLayout;
+    std::vector<VkCommandBuffer> m_commandBuffers;
   };
 } // namespace kopi

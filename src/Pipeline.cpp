@@ -23,6 +23,10 @@ namespace kopi {
     vkDestroyPipeline(m_device.device(), m_graphicsPipeline, nullptr);
   }
 
+  void Pipeline::bind(VkCommandBuffer commandBuffer) {
+    vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_graphicsPipeline);
+  }
+
   void Pipeline::createGraphicsPipeline(const std::string &vertFilePath,
                                         const std::string &fragFilePath,
                                         const PipelineConfigInfo &configInfo) {
@@ -68,13 +72,20 @@ namespace kopi {
     vertexInputInfo.pVertexAttributeDescriptions    = nullptr;
     vertexInputInfo.pVertexBindingDescriptions      = nullptr;
 
+    VkPipelineViewportStateCreateInfo viewportInfo{};
+    viewportInfo.sType         = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
+    viewportInfo.viewportCount = 1;
+    viewportInfo.pViewports    = &configInfo.viewport;
+    viewportInfo.scissorCount  = 1;
+    viewportInfo.pScissors     = &configInfo.scissor;
+
     VkGraphicsPipelineCreateInfo pipeLineInfo{};
     pipeLineInfo.sType               = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
     pipeLineInfo.stageCount          = 2;
     pipeLineInfo.pStages             = shaderStages;
     pipeLineInfo.pVertexInputState   = &vertexInputInfo;
     pipeLineInfo.pInputAssemblyState = &configInfo.inputAssemblyInfo;
-    pipeLineInfo.pViewportState      = &configInfo.viewportInfo;
+    pipeLineInfo.pViewportState      = &viewportInfo;
     pipeLineInfo.pRasterizationState = &configInfo.rasterizationInfo;
     pipeLineInfo.pMultisampleState   = &configInfo.multisampleInfo;
     pipeLineInfo.pColorBlendState    = &configInfo.colorBlendInfo;
@@ -153,13 +164,6 @@ namespace kopi {
     // ---Scissor Info---
     configInfo.scissor.offset = {0, 0};
     configInfo.scissor.extent = {width, height};
-
-    // ---Viewport Info---
-    configInfo.viewportInfo.sType         = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
-    configInfo.viewportInfo.viewportCount = 1;
-    configInfo.viewportInfo.pViewports    = &configInfo.viewport;
-    configInfo.viewportInfo.scissorCount  = 1;
-    configInfo.viewportInfo.pScissors     = &configInfo.scissor;
 
     // ---Rasterization Info---
     configInfo.rasterizationInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
