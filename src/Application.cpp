@@ -31,7 +31,11 @@ namespace kopi {
   }
 
   void Application::loadModels() {
-    std::vector<Model::Vertex> vertices{{{0.0, -0.5}}, {{0.5, 0.5}}, {{-0.5, 0.5}}};
+    std::vector<Model::Vertex> vertices{
+        {.position = {0.0, -0.5}, .colour = {1.0f, 0.0f, 0.0f}},
+        {.position = {0.5, 0.5}, .colour = {0.0f, 1.0f, 0.0f}},
+        {.position = {-0.5, 0.5},.colour = {0.0f, 0.0f, 1.0f}}
+    };
 
     m_model = std::make_unique<Model>(m_device, vertices);
   }
