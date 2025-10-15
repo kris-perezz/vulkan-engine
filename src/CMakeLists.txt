@@ -39,6 +39,14 @@ add_executable(vulkan-engine
   main.cpp
 )
 
+set(PRE_SCRIPT "${CMAKE_SOURCE_DIR}/compileShader.sh")
+
+add_custom_target(prebuild_always ALL
+  COMMAND ${CMAKE_COMMAND} -E env bash "${PRE_SCRIPT}"
+  WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}")
+
+add_dependencies(vulkan-engine prebuild_always)
+
 target_link_libraries(vulkan-engine
   PRIVATE
     Vulkan_Engine

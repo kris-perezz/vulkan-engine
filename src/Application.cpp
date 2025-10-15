@@ -1,3 +1,7 @@
+#define GLM_FORCE_RADIANS
+#define GLM_FORCE_DEPTH_ZERO_TO_ONE
+#include <glm/glm.hpp>
+
 #include "Application.h"
 #include "Log.h"
 #include "Pipeline.h"
@@ -11,6 +15,12 @@
 #include <vulkan/vulkan_core.h>
 
 namespace kopi {
+
+  struct SimplePushConstantData {
+    alignas(16) glm::vec2 offset;
+    alignas(16) glm::vec3 colour;
+  };
+
   Application::Application() {
     loadModels();
     createPipelineLayout();
@@ -41,12 +51,18 @@ namespace kopi {
   }
 
   void Application::createPipelineLayout() {
+
+    VkPushConstantRange pushConstantRange{};
+    pushConstantRange.stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT;
+    pushConstantRange.offset     = 0;
+    pushConstantRange.size       = sizeof(SimplePushConstantData);
+
     VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
     pipelineLayoutInfo.sType                  = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
     pipelineLayoutInfo.setLayoutCount         = 0;
     pipelineLayoutInfo.pSetLayouts            = nullptr;
-    pipelineLayoutInfo.pushConstantRangeCount = 0;
-    pipelineLayoutInfo.pPushConstantRanges    = nullptr;
+    pipelineLayoutInfo.pushConstantRangeCount = 1;
+    pipelineLayoutInfo.pPushConstantRanges    = &pushConstantRange;
 
     if (vkCreatePipelineLayout(m_device.device(),
                                &pipelineLayoutInfo,
@@ -87,7 +103,7 @@ namespace kopi {
       m_swapChain = std::make_unique<SwapChain>(m_device, extent);
     } else {
       m_swapChain = std::make_unique<SwapChain>(m_device, extent, std::move(m_swapChain));
-      if(m_swapChain->imageCount() != m_commandBuffers.size()) {
+      if (m_swapChain->imageCount() != m_commandBuffers.size()) {
         freeCommandBuffers();
         createCommandBuffers();
       }
@@ -113,7 +129,10 @@ namespace kopi {
   }
 
   void Application::freeCommandBuffers() {
-    vkFreeCommandBuffers(m_device.device(), m_device.getCommandPool(), static_cast<uint32_t>(m_commandBuffers.size()), m_commandBuffers.data());
+    vkFreeCommandBuffers(m_device.device(),
+                         m_device.getCommandPool(),
+                         static_cast<uint32_t>(m_commandBuffers.size()),
+                         m_commandBuffers.data());
 
     m_commandBuffers.clear();
   }
@@ -147,6 +166,9 @@ namespace kopi {
   }
 
   void Application::recordCommandBuffer(int imageIndex) {
+    static int frame = 0;
+    frame = (frame + 1) % 1000;
+
     VkCommandBufferBeginInfo beginInfo{};
     beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
 
@@ -164,7 +186,7 @@ namespace kopi {
 
     std::array<VkClearValue, 2> clearValues{};
     clearValues[0].color = {
-        {0.1f, 0.1f, 0.1f, 1.0f}
+        {0.01f, 0.01f, 0.01f, 1.0f}
     };
     clearValues[1].depthStencil    = {1.0f, 0};
     renderPassInfo.clearValueCount = static_cast<uint32_t>(clearValues.size());
@@ -188,7 +210,21 @@ namespace kopi {
 
     m_pipeline->bind(m_commandBuffers[imageIndex]);
     m_model->bind(m_commandBuffers[imageIndex]);
-    m_model->draw(m_commandBuffers[imageIndex]);
+
+    for (int j = 0; j < 4; j++) {
+      SimplePushConstantData push{};
+      push.offset = {-0.5f + (frame * 0.002f), -0.4f + (j * 0.25f)};
+      push.colour = {0.0f, 0.0f, 0.2f + (0.2f * j)};
+
+      vkCmdPushConstants(m_commandBuffers[imageIndex],
+                         m_pipelineLayout,
+                         VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
+                         0,
+                         sizeof(SimplePushConstantData),
+                         &push);
+
+      m_model->draw(m_commandBuffers[imageIndex]);
+    }
 
     vkCmdEndRenderPass(m_commandBuffers[imageIndex]);
 
