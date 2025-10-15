@@ -1,8 +1,11 @@
+#include "glm/fwd.hpp"
+#include "glm/gtc/constants.hpp"
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
 #include <glm/glm.hpp>
 
 #include "Application.h"
+#include "GameObject.h"
 #include "Log.h"
 #include "Pipeline.h"
 #include "SwapChain.h"
@@ -17,12 +20,13 @@
 namespace kopi {
 
   struct SimplePushConstantData {
+    alignas(16) glm::mat2 transform{1.0f};
     alignas(16) glm::vec2 offset;
     alignas(16) glm::vec3 colour;
   };
 
   Application::Application() {
-    loadModels();
+    loadGameObjects();
     createPipelineLayout();
     recreateSwapChain();
     createCommandBuffers();
@@ -40,14 +44,23 @@ namespace kopi {
     vkDeviceWaitIdle(m_device.device());
   }
 
-  void Application::loadModels() {
+  void Application::loadGameObjects() {
     std::vector<Model::Vertex> vertices{
         {.position = {0.0, -0.5}, .colour = {1.0f, 0.0f, 0.0f}},
         {.position = {0.5, 0.5},  .colour = {0.0f, 1.0f, 0.0f}},
         {.position = {-0.5, 0.5}, .colour = {0.0f, 0.0f, 1.0f}}
     };
 
-    m_model = std::make_unique<Model>(m_device, vertices);
+    auto m_model = std::make_shared<Model>(m_device, vertices);
+
+    auto triangle                      = GameObject::createGameObject();
+    triangle.model                     = m_model;
+    triangle.color                     = {0.1f, 0.8f, 0.1f};
+    triangle.transform2d.translation.x = 0.2f;
+    triangle.transform2d.scale         = {1.0f, 1.5f};
+    triangle.transform2d.rotation      = 0.25f * glm::two_pi<float>();
+
+    gameObjects.push_back(std::move(triangle));
   }
 
   void Application::createPipelineLayout() {
@@ -166,8 +179,6 @@ namespace kopi {
   }
 
   void Application::recordCommandBuffer(int imageIndex) {
-    static int frame = 0;
-    frame = (frame + 1) % 1000;
 
     VkCommandBufferBeginInfo beginInfo{};
     beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
@@ -208,29 +219,34 @@ namespace kopi {
     vkCmdSetViewport(m_commandBuffers[imageIndex], 0, 1, &viewport);
     vkCmdSetScissor(m_commandBuffers[imageIndex], 0, 1, &scissor);
 
-    m_pipeline->bind(m_commandBuffers[imageIndex]);
-    m_model->bind(m_commandBuffers[imageIndex]);
+    renderGameObjects(m_commandBuffers[imageIndex]);
 
-    for (int j = 0; j < 4; j++) {
+    vkCmdEndRenderPass(m_commandBuffers[imageIndex]);
+
+    if (vkEndCommandBuffer(m_commandBuffers[imageIndex]) != VK_SUCCESS) {
+      throw std::runtime_error("failed to record command buffer!");
+    }
+  }
+
+  void Application::renderGameObjects(VkCommandBuffer commandBuffer) {
+    m_pipeline->bind(commandBuffer);
+
+    for (auto &obj : gameObjects) {
+      obj.transform2d.rotation = glm::mod(obj.transform2d.rotation + 0.01f, glm::two_pi<float>());
+
       SimplePushConstantData push{};
-      push.offset = {-0.5f + (frame * 0.002f), -0.4f + (j * 0.25f)};
-      push.colour = {0.0f, 0.0f, 0.2f + (0.2f * j)};
+      push.offset    = obj.transform2d.translation;
+      push.colour    = obj.color;
+      push.transform = obj.transform2d.mat2();
 
-      vkCmdPushConstants(m_commandBuffers[imageIndex],
+      vkCmdPushConstants(commandBuffer,
                          m_pipelineLayout,
                          VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
                          0,
                          sizeof(SimplePushConstantData),
                          &push);
-
-      m_model->draw(m_commandBuffers[imageIndex]);
-    }
-
-    vkCmdEndRenderPass(m_commandBuffers[imageIndex]);
-
-    if (vkEndCommandBuffer(m_commandBuffers[imageIndex]) != VK_SUCCESS) {
-      LOG_ERROR("Failed to record command buffer!");
-      throw std::runtime_error("Failed to record command buffer!");
+      obj.model->bind(commandBuffer);
+      obj.model->draw(commandBuffer);
     }
   }
 } // namespace kopi

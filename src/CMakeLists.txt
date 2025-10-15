@@ -6,7 +6,8 @@ set(ENGINE_HEADER
   Pipeline.h
   EngineDevice.h
   SwapChain.h
-  Model.h)
+  Model.h
+  GameObject.h)
 
 set(ENGINE_SOURCE
   Log.cpp

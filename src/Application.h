@@ -1,6 +1,7 @@
 #pragma once
 
 #include "EngineDevice.h"
+#include "GameObject.h"
 #include "Model.h"
 #include "Pipeline.h"
 #include "SwapChain.h"
@@ -27,7 +28,7 @@ namespace kopi {
     void run();
 
   private:
-    void loadModels();
+    void loadGameObjects();
     void createPipelineLayout();
     void createPipeline();
     void createCommandBuffers();
@@ -35,6 +36,7 @@ namespace kopi {
     void drawFrame();
     void recreateSwapChain();
     void recordCommandBuffer(int imageIndex);
+     void renderGameObjects(VkCommandBuffer commandBuffer);
 
     Window m_window{"kopi engine", WIDTH, HEIGHT};
     EngineDevice m_device{m_window};
@@ -43,6 +45,6 @@ namespace kopi {
 
     VkPipelineLayout m_pipelineLayout;
     std::vector<VkCommandBuffer> m_commandBuffers;
-    std::unique_ptr<Model> m_model;
+    std::vector<GameObject> gameObjects;
   };
 } // namespace kopi
