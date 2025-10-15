@@ -1,6 +1,8 @@
 
 set(ENGINE_HEADER
   Log.h
+  Renderer.h
+  RenderSystem.h
   Application.h
   Window.h
   Pipeline.h
@@ -12,6 +14,8 @@ set(ENGINE_HEADER
 set(ENGINE_SOURCE
   Log.cpp
   Window.cpp
+  Renderer.cpp
+  RenderSystem.cpp
   Application.cpp
   Pipeline.cpp
   EngineDevice.cpp

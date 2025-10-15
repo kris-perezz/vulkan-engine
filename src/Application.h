@@ -2,9 +2,8 @@
 
 #include "EngineDevice.h"
 #include "GameObject.h"
-#include "Model.h"
 #include "Pipeline.h"
-#include "SwapChain.h"
+#include "Renderer.h"
 #include "Window.h"
 #include <memory>
 #include <string>
@@ -29,22 +28,11 @@ namespace kopi {
 
   private:
     void loadGameObjects();
-    void createPipelineLayout();
-    void createPipeline();
-    void createCommandBuffers();
-    void freeCommandBuffers();
-    void drawFrame();
-    void recreateSwapChain();
-    void recordCommandBuffer(int imageIndex);
-     void renderGameObjects(VkCommandBuffer commandBuffer);
 
     Window m_window{"kopi engine", WIDTH, HEIGHT};
     EngineDevice m_device{m_window};
-    std::unique_ptr<SwapChain> m_swapChain;
-    std::unique_ptr<Pipeline> m_pipeline;
+    Renderer m_renderer{m_window, m_device};
 
-    VkPipelineLayout m_pipelineLayout;
-    std::vector<VkCommandBuffer> m_commandBuffers;
-    std::vector<GameObject> gameObjects;
+    std::vector<GameObject> m_gameObjects;
   };
 } // namespace kopi
