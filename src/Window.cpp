@@ -18,15 +18,30 @@ namespace kopi {
   void Window::initWindow() {
     glfwInit();
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-    glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
+    glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
 
     m_window = glfwCreateWindow(m_width, m_height, m_windowName.c_str(), nullptr, nullptr);
+    glfwSetWindowUserPointer(m_window, this);
+    glfwSetFramebufferSizeCallback(m_window, frameBufferResizeCallback);
   }
 
   bool Window::shouldClose() { return glfwWindowShouldClose(m_window); }
 
   VkExtent2D Window::getExtent() {
     return {static_cast<uint32_t>(m_width), static_cast<uint32_t>(m_height)};
+  }
+
+  bool Window::wasWindowResized() { return m_frameBufferResized; }
+
+  void Window::resetWindowResizeFlag() { m_frameBufferResized = false; }
+
+  void Window::frameBufferResizeCallback(GLFWwindow *window, int width, int height) {
+    auto w = reinterpret_cast<Window *>(glfwGetWindowUserPointer(window));
+
+    w->m_frameBufferResized = true;
+    w->m_width = width;
+    w->m_height = height;
+
   }
 
   void Window::createWindowSurface(VkInstance instance, VkSurfaceKHR *surface) {

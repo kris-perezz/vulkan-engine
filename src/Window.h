@@ -20,12 +20,20 @@ namespace kopi {
 
     VkExtent2D getExtent();
 
+    bool wasWindowResized();
+
+    void resetWindowResizeFlag();
+
   private:
+    static void frameBufferResizeCallback(GLFWwindow *window, int width, int height);
     void initWindow();
+
     GLFWwindow *m_window;
 
-    const int m_width;
-    const int m_height;
+    int m_width;
+    int m_height;
     std::string m_windowName;
+
+    bool m_frameBufferResized;
   };
 } // namespace kopi

@@ -13,6 +13,16 @@ namespace kopi {
 
   SwapChain::SwapChain(EngineDevice &deviceRef, VkExtent2D extent)
       : device{deviceRef}, windowExtent{extent} {
+    init();
+  }
+  SwapChain::SwapChain(EngineDevice &deviceRef, VkExtent2D extent, std::shared_ptr<SwapChain> previous)
+      : device{deviceRef}, windowExtent{extent}, oldSwapchain{previous} {
+    init();
+
+    oldSwapchain = nullptr;
+  }
+
+  void SwapChain::init() {
     createSwapChain();
     createImageViews();
     createRenderPass();
@@ -161,7 +171,7 @@ namespace kopi {
     createInfo.presentMode = presentMode;
     createInfo.clipped     = VK_TRUE;
 
-    createInfo.oldSwapchain = VK_NULL_HANDLE;
+    createInfo.oldSwapchain = oldSwapchain == nullptr ? VK_NULL_HANDLE : oldSwapchain->swapChain;
 
     if (vkCreateSwapchainKHR(device.device(), &createInfo, nullptr, &swapChain) != VK_SUCCESS) {
       LOG_ERROR("Failed to create swap chain!");

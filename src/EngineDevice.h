@@ -32,10 +32,10 @@ namespace kopi {
     ~EngineDevice();
 
     // Not copyable or movable
-    EngineDevice(const EngineDevice &)       = delete;
-    void operator=(const EngineDevice &)     = delete;
-    EngineDevice(EngineDevice &&)            = delete;
-    EngineDevice &operator=(EngineDevice &&) = delete;
+    EngineDevice(const EngineDevice &)            = delete;
+    EngineDevice &operator=(const EngineDevice &) = delete;
+    EngineDevice(EngineDevice &&)                 = delete;
+    EngineDevice &operator=(EngineDevice &&)      = delete;
 
     VkCommandPool getCommandPool() { return commandPool; }
     VkDevice device() { return device_; }
