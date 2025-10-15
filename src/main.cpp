@@ -1,4 +1,5 @@
 #include "Application.h"
+#include "GravitySystem.h"
 #include "Log.h"
 #include <exception>
 int main() {

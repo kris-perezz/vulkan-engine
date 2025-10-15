@@ -9,14 +9,15 @@ set(ENGINE_HEADER
   EngineDevice.h
   SwapChain.h
   Model.h
-  GameObject.h)
+  GameObject.h
+  GravitySystem.h)
 
 set(ENGINE_SOURCE
   Log.cpp
   Window.cpp
   Renderer.cpp
   RenderSystem.cpp
-  Application.cpp
+  #Application.cpp
   Pipeline.cpp
   EngineDevice.cpp
   SwapChain.cpp

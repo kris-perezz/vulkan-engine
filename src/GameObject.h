@@ -26,6 +26,11 @@ namespace kopi {
     }
   };
 
+  struct RigidBody2dComponent {
+     glm::vec2 velocity;
+     float mass{1.0f};
+   };
+
   class GameObject {
   public:
     static GameObject createGameObject() {
@@ -42,6 +47,7 @@ namespace kopi {
     std::shared_ptr<Model> model{};
     glm::vec3 color{};
     Transform2dComponent transform2d{};
+    RigidBody2dComponent rigidBody2d{};
 
   private:
     GameObject(uint32_t id) : m_id{id} {}
